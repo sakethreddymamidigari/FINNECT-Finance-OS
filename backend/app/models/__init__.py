@@ -1,1 +1,1 @@
-from .user import User
+from .finance_owner import FinanceOwner
