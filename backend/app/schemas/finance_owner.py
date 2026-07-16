@@ -1,3 +1,9 @@
+"""
+Finance Owner Schemas
+
+Pydantic models used for request and response validation.
+"""
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -9,8 +15,9 @@ class FinanceOwnerCreate(BaseModel):
     password: str
     address: str
 
+
 class FinanceOwnerResponse(BaseModel):
-    id:int
+    id: int
     business_name: str
     owner_name: str
     phone: str
@@ -18,11 +25,7 @@ class FinanceOwnerResponse(BaseModel):
     address: str
 
     class Config:
-        from_attribute = True
-        
-class FinanceOwnerLogin(BaseModel):
-    email: EmailStr
-    password: str
+        from_attributes = True
 
 
 class Token(BaseModel):

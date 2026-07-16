@@ -1,23 +1,34 @@
+"""
+Finance Owner Service
+
+Contains business logic for finance owner registration
+and authentication.
+"""
+
 from sqlalchemy.orm import Session
 
-from backend.app.models.finance_owner import FinanceOwner
-from backend.app.schemas.finance_owner import FinanceOwnerCreate
 from backend.app.core.security import (
     hash_password,
     verify_password,
-    create_access_token
+    create_access_token,
 )
+from backend.app.models.finance_owner import FinanceOwner
+from backend.app.schemas.finance_owner import FinanceOwnerCreate
 
 
 def create_finance_owner(
     db: Session,
-    owner: FinanceOwnerCreate
+    owner: FinanceOwnerCreate,
 ):
+    """
+    Register a new finance owner.
+    """
+
     existing_owner = (
         db.query(FinanceOwner)
         .filter(
-            (FinanceOwner.email == owner.email) |
-            (FinanceOwner.phone == owner.phone)
+            (FinanceOwner.email == owner.email)
+            | (FinanceOwner.phone == owner.phone)
         )
         .first()
     )
@@ -33,7 +44,7 @@ def create_finance_owner(
         phone=owner.phone,
         email=owner.email,
         password_hash=hash_password(owner.password),
-        address=owner.address
+        address=owner.address,
     )
 
     db.add(db_owner)
@@ -42,11 +53,16 @@ def create_finance_owner(
 
     return db_owner
 
-def login_finance_owner(
+
+def authenticate_finance_owner(
     db: Session,
     email: str,
-    password: str
+    password: str,
 ):
+    """
+    Authenticate a finance owner and generate a JWT access token.
+    """
+
     owner = (
         db.query(FinanceOwner)
         .filter(FinanceOwner.email == email)
@@ -54,22 +70,22 @@ def login_finance_owner(
     )
 
     if owner is None:
-        raise ValueError("Invalid email or password")
+        raise ValueError("Invalid email or password.")
 
     if not verify_password(
         password,
-        owner.password_hash
+        owner.password_hash,
     ):
-        raise ValueError("Invalid email or password")
+        raise ValueError("Invalid email or password.")
 
-    token = create_access_token(
-        {
+    access_token = create_access_token(
+        data={
             "sub": owner.email,
-            "owner_id": owner.id
+            "owner_id": owner.id,
         }
     )
 
     return {
-        "access_token": token,
-        "token_type": "bearer"
+        "access_token": access_token,
+        "token_type": "bearer",
     }
