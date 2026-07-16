@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from backend.app.api.users import router as user_router
+from backend.app.api.finance_owner import router as finance_owner_router
 
 app=FastAPI(
     title="FINNECT Finance OS",
@@ -8,7 +8,7 @@ app=FastAPI(
     description="Digital operating system for local finance businesses."
 )
 
-app.include_router(user_router)
+app.include_router(finance_owner_router)
 
 @app.get("/")
 def root():
