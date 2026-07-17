@@ -33,3 +33,9 @@ class Customer(Base):
         "FinanceOwner",
         back_populates="customers"
     )
+
+    loans = relationship(
+        "Loan",
+        back_populates="customer",
+        cascade="all, delete-orphan",
+    )

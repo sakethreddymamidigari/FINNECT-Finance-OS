@@ -25,3 +25,9 @@ class FinanceOwner(Base):
         back_populates="finance_owner",
         cascade="all, delete-orphan"
     )
+
+    loans = relationship(
+        "Loan",
+        back_populates="finance_owner",
+        cascade="all, delete-orphan",
+    )
