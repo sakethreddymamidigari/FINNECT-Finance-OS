@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String
 from backend.app.database.base import Base
+from sqlalchemy.orm import relationship
 
 
 class FinanceOwner(Base):
@@ -18,3 +19,9 @@ class FinanceOwner(Base):
     password_hash = Column(String(255), nullable=False)
 
     address = Column(String(255), nullable=False)
+
+    customers = relationship(
+        "Customer",
+        back_populates="finance_owner",
+        cascade="all, delete-orphan"
+    )
