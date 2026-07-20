@@ -5,6 +5,7 @@ from decimal import Decimal
 from backend.app.models.customer import Customer
 from backend.app.models.loan import Loan
 from backend.app.schemas.loan import LoanCreate
+from backend.app.schemas.loan import LoanUpdate
 
 
 def create_loan(
@@ -61,6 +62,8 @@ def get_loans(
         )
         .all()
     )
+
+
 def get_loan_by_id(
     db: Session,
     loan_id: int,
@@ -80,5 +83,39 @@ def get_loan_by_id(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Loan not found.",
         )
+
+    return loan
+
+
+def update_loan(
+    db: Session,
+    loan_id: int,
+    loan_data: LoanUpdate,
+    finance_owner_id: int,
+):
+    """
+    Update editable loan details.
+    Only due date, interest method and interest rate
+    can be modified.
+    """
+
+    loan = (
+        db.query(Loan)
+        .filter(
+            Loan.id == loan_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    if not loan:
+        return None
+
+    loan.interest_method = loan_data.interest_method
+    loan.interest_rate = loan_data.interest_rate
+    loan.due_date = loan_data.due_date
+
+    db.commit()
+    db.refresh(loan)
 
     return loan

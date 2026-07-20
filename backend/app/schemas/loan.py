@@ -12,6 +12,10 @@ class LoanCreate(BaseModel):
     issue_date: date
     due_date: date
 
+class LoanUpdate(BaseModel):
+    interest_method: str
+    interest_rate: Decimal
+    due_date: date
 
 class LoanResponse(BaseModel):
     id: int
