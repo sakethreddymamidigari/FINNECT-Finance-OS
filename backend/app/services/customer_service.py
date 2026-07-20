@@ -1,3 +1,4 @@
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from backend.app.models.customer import Customer
@@ -38,5 +39,43 @@ def get_customers(
     return (
         db.query(Customer)
         .filter(Customer.finance_owner_id == finance_owner_id)
+        .all()
+    )
+
+
+def get_customer_names(
+    db: Session,
+    finance_owner_id: int,
+):
+    """
+    Return only customer IDs and names for dropdown selection.
+    """
+
+    return (
+        db.query(Customer.id, Customer.full_name)
+        .filter(Customer.finance_owner_id == finance_owner_id)
+        .order_by(Customer.full_name)
+        .all()
+    )
+
+def search_customers(
+    db: Session,
+    finance_owner_id: int,
+    query: str,
+):
+    """
+    Search customers by name or phone.
+    """
+
+    return (
+        db.query(Customer)
+        .filter(
+            Customer.finance_owner_id == finance_owner_id,
+            or_(
+                Customer.full_name.ilike(f"%{query}%"),
+                Customer.phone.ilike(f"%{query}%"),
+            ),
+        )
+        .order_by(Customer.full_name)
         .all()
     )

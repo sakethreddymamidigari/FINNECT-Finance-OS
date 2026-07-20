@@ -11,7 +11,8 @@ from backend.app.services.loan_service import (
     create_loan,
     get_loans,
     get_loan_by_id,
-    update_loan
+    update_loan,
+    get_loans_by_customer,
 )
 
 router = APIRouter(
@@ -70,6 +71,7 @@ def get_loans_endpoint(
         finance_owner_id=current_owner.id,
     )
 
+
 @router.put("/{loan_id}", response_model=LoanResponse)
 def update_existing_loan(
     loan_id: int,
@@ -95,3 +97,22 @@ def update_existing_loan(
         )
 
     return loan
+
+@router.get(
+    "/customer/{customer_id}",
+    response_model=list[LoanResponse],
+)
+def get_customer_loans_endpoint(
+    customer_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Return all loans of a customer.
+    """
+
+    return get_loans_by_customer(
+        db=db,
+        customer_id=customer_id,
+        finance_owner_id=current_owner.id,
+    )

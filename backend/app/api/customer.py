@@ -1,13 +1,19 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from backend.app.database.deps import get_db
-from backend.app.schemas.customer import CustomerCreate, CustomerResponse
+from backend.app.schemas.customer import (
+    CustomerCreate,
+    CustomerResponse,
+    CustomerListResponse,
+)
 from backend.app.services.customer_service import (
     create_customer,
     get_customers,
+    get_customer_names,
+    search_customers,
 )
 from backend.app.core.auth import get_current_finance_owner
 from backend.app.models.finance_owner import FinanceOwner
@@ -34,6 +40,24 @@ def create_customer_endpoint(
         finance_owner_id=current_owner.id,
     )
 
+@router.get(
+    "/search",
+    response_model=List[CustomerResponse],
+)
+def search_customers_endpoint(
+    query: str = Query(..., min_length=1),
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Search customers by name or phone.
+    """
+
+    return search_customers(
+        db=db,
+        finance_owner_id=current_owner.id,
+        query=query,
+    )
 
 @router.get(
     "/",
@@ -44,6 +68,25 @@ def get_customers_endpoint(
     current_owner: FinanceOwner = Depends(get_current_finance_owner),
 ):
     return get_customers(
+        db=db,
+        finance_owner_id=current_owner.id,
+    )
+
+
+@router.get(
+    "/names",
+    response_model=List[CustomerListResponse],
+)
+
+def get_customer_names_endpoint(
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Return customer IDs and names for dropdown selection.
+    """
+
+    return get_customer_names(
         db=db,
         finance_owner_id=current_owner.id,
     )

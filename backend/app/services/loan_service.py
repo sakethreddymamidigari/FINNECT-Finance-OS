@@ -86,6 +86,23 @@ def get_loan_by_id(
 
     return loan
 
+def get_loans_by_customer(
+    db: Session,
+    customer_id: int,
+    finance_owner_id: int,
+):
+    """
+    Return all loans of a customer belonging to the authenticated finance owner.
+    """
+
+    return (
+        db.query(Loan)
+        .filter(
+            Loan.customer_id == customer_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .all()
+    )
 
 def update_loan(
     db: Session,

@@ -15,3 +15,10 @@ class CustomerResponse(BaseModel):
     address: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+class CustomerListResponse(BaseModel):
+    id: int
+    full_name: str
+
+    class Config:
+        from_attributes = True
