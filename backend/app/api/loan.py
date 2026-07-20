@@ -10,6 +10,7 @@ from backend.app.schemas.loan import LoanCreate, LoanResponse
 from backend.app.services.loan_service import (
     create_loan,
     get_loans,
+    get_loan_by_id,
 )
 
 router = APIRouter(
@@ -36,6 +37,22 @@ def create_loan_endpoint(
         finance_owner_id=current_owner.id,
     )
 
+@router.get(
+    "/{loan_id}",
+    response_model=LoanResponse,
+)
+def get_loan_by_id_endpoint(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner
+    ),
+):
+    return get_loan_by_id(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=current_owner.id,
+    )
 
 @router.get(
     "/",

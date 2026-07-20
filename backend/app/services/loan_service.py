@@ -61,3 +61,24 @@ def get_loans(
         )
         .all()
     )
+def get_loan_by_id(
+    db: Session,
+    loan_id: int,
+    finance_owner_id: int,
+):
+    loan = (
+        db.query(Loan)
+        .filter(
+            Loan.id == loan_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    if loan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Loan not found.",
+        )
+
+    return loan
