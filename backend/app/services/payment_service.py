@@ -122,3 +122,94 @@ def get_loan_payments(
         .order_by(Payment.payment_date.desc())
         .all()
     )
+
+
+def delete_payment(
+    db: Session,
+    payment_id: int,
+    finance_owner_id: int,
+):
+    """
+    Delete a payment and restore the loan balances.
+    """
+
+    payment = (
+        db.query(Payment)
+        .filter(
+            Payment.id == payment_id,
+            Payment.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    if payment is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Payment not found.",
+        )
+
+    loan = (
+        db.query(Loan)
+        .filter(
+            Loan.id == payment.loan_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    if loan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Loan not found.",
+        )
+    
+    # Get the latest payment for this loan
+    latest_payment = (
+        db.query(Payment)
+        .filter(
+            Payment.loan_id == payment.loan_id,
+            Payment.finance_owner_id == finance_owner_id,
+        )
+        .order_by(Payment.payment_date.desc(), Payment.id.desc())
+        .first()
+    )
+
+    # Allow deletion only for the latest payment
+    if latest_payment.id != payment.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only the latest payment can be deleted.",
+        )
+
+    # Restore loan values
+    loan.remaining_principal += payment.principal_paid
+    loan.total_principal_paid -= payment.principal_paid
+    loan.total_interest_paid -= payment.interest_paid
+
+    # Restore interest calculation date
+    previous_payment = (
+        db.query(Payment)
+        .filter(
+            Payment.loan_id == loan.id,
+            Payment.finance_owner_id == finance_owner_id,
+            Payment.payment_date < payment.payment_date,
+        )
+        .order_by(Payment.payment_date.desc())
+        .first()
+    )
+
+    if previous_payment:
+        loan.last_interest_calculated_on = previous_payment.payment_date
+    else:
+        loan.last_interest_calculated_on = loan.start_date
+
+    # Reopen loan if necessary
+    if loan.status == "CLOSED":
+        loan.status = "ACTIVE"
+
+    db.delete(payment)
+    db.commit()
+
+    return {
+        "message": "Payment deleted successfully"
+    }

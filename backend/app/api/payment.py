@@ -14,6 +14,7 @@ from backend.app.services.payment_service import (
     create_payment,
     get_payment,
     get_loan_payments,
+    delete_payment,
 )
 
 router = APIRouter(
@@ -73,5 +74,23 @@ def get_loan_payments_endpoint(
     return get_loan_payments(
         db=db,
         loan_id=loan_id,
+        finance_owner_id=current_owner.id,
+    )
+
+
+@router.delete(
+    "/{payment_id}",
+    status_code=status.HTTP_200_OK,
+)
+def delete_payment_endpoint(
+    payment_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner,
+    ),
+):
+    return delete_payment(
+        db=db,
+        payment_id=payment_id,
         finance_owner_id=current_owner.id,
     )
