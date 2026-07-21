@@ -47,3 +47,13 @@ class DashboardResponse(BaseModel):
 
     # Enable SQLAlchemy ORM object support
     model_config = ConfigDict(from_attributes=True)
+
+class ProfitSummaryResponse(BaseModel):
+    """
+    Response model for profit summary.
+    """
+
+    total_principal: Decimal
+    total_interest: Decimal
+    total_amount: Decimal
+    loan_count: int

@@ -3,11 +3,15 @@ from datetime import date
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 
 from backend.app.models.customer import Customer
 from backend.app.models.loan import Loan
 from backend.app.models.payment import Payment
-from backend.app.schemas.dashboard import DashboardResponse
+from backend.app.schemas.dashboard import (
+    DashboardResponse,
+    ProfitSummaryResponse,
+)
 
 
 def get_dashboard(
@@ -161,4 +165,38 @@ def get_dashboard(
         today_collection=today_collection,
         recent_loans=recent_loans,
         recent_payments=recent_payments,
+    )
+
+def get_profit_summary(
+    db: Session,
+    finance_owner_id: int,
+    from_date: date,
+    to_date: date,
+):
+    """
+    Return profit summary for the selected period.
+    """
+
+    loans = (
+        db.query(Loan)
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Loan.issue_date >= from_date,
+            Loan.issue_date <= to_date,
+        )
+        .all()
+    )
+
+    total_principal = Decimal("0.00")
+    total_interest = Decimal("0.00")
+
+    for loan in loans:
+        total_principal += loan.principal_amount
+        total_interest += loan.total_interest_paid
+
+    return ProfitSummaryResponse(
+        total_principal=total_principal,
+        total_interest=total_interest,
+        total_amount=total_principal + total_interest,
+        loan_count=len(loans),
     )
