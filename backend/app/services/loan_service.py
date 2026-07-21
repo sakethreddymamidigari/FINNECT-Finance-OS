@@ -235,3 +235,25 @@ def get_loans_due_this_month(
         .order_by(Loan.due_date.asc())
         .all()
     )
+
+def get_loans_due_by_month(
+    db: Session,
+    finance_owner_id: int,
+    month: int,
+    year: int,
+):
+    """
+    Return all active loans due in the specified month and year.
+    """
+
+    return (
+        db.query(Loan)
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Loan.status == "ACTIVE",
+            extract("month", Loan.due_date) == month,
+            extract("year", Loan.due_date) == year,
+        )
+        .order_by(Loan.due_date.asc())
+        .all()
+    )

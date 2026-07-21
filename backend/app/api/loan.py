@@ -17,6 +17,7 @@ from backend.app.services.loan_service import (
     search_loans,
     get_overdue_loans,
     get_loans_due_this_month,
+    get_loans_due_by_month,
 )
 
 router = APIRouter(
@@ -140,6 +141,28 @@ def get_loans_due_this_month_endpoint(
     return get_loans_due_this_month(
         db=db,
         finance_owner_id=current_owner.id,
+    )
+
+@router.get(
+    "/due",
+    response_model=List[LoanResponse],
+    summary="Get Loans Due By Month",
+)
+def get_loans_due_by_month_endpoint(
+    month: int,
+    year: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Return all active loans due in the specified month and year.
+    """
+
+    return get_loans_due_by_month(
+        db=db,
+        finance_owner_id=current_owner.id,
+        month=month,
+        year=year,
     )
 
 @router.get(
