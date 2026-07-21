@@ -1,11 +1,13 @@
+from datetime import date
+from decimal import Decimal
+from typing import Optional
+
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from decimal import Decimal
 
 from backend.app.models.customer import Customer
 from backend.app.models.loan import Loan
-from backend.app.schemas.loan import LoanCreate
-from backend.app.schemas.loan import LoanUpdate
+from backend.app.schemas.loan import LoanCreate, LoanUpdate
 
 
 def create_loan(
@@ -86,13 +88,14 @@ def get_loan_by_id(
 
     return loan
 
+
 def get_loans_by_customer(
     db: Session,
     customer_id: int,
     finance_owner_id: int,
 ):
     """
-    Return all loans of a customer belonging to the authenticated finance owner.
+    Return all loans belonging to the specified customer.
     """
 
     return (
@@ -104,6 +107,7 @@ def get_loans_by_customer(
         .all()
     )
 
+
 def update_loan(
     db: Session,
     loan_id: int,
@@ -111,9 +115,7 @@ def update_loan(
     finance_owner_id: int,
 ):
     """
-    Update editable loan details.
-    Only due date, interest method and interest rate
-    can be modified.
+    Update editable loan information.
     """
 
     loan = (
@@ -136,3 +138,56 @@ def update_loan(
     db.refresh(loan)
 
     return loan
+
+
+def search_loans(
+    db: Session,
+    finance_owner_id: int,
+    customer_name: Optional[str] = None,
+    mobile_number: Optional[str] = None,
+    status_filter: Optional[str] = None,
+    from_date: Optional[date] = None,
+    to_date: Optional[date] = None,
+):
+    """
+    Search loans using one or more optional filters.
+    """
+
+    query = (
+        db.query(Loan)
+        .join(Customer)
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Customer.finance_owner_id == finance_owner_id,
+        )
+    )
+
+    if customer_name:
+        query = query.filter(
+            Customer.full_name.ilike(f"%{customer_name}%")
+        )
+
+    if mobile_number:
+        query = query.filter(
+            Customer.phone.ilike(f"%{mobile_number}%")
+        )
+
+    if status_filter:
+        query = query.filter(
+            Loan.status == status_filter.upper()
+        )
+
+    if from_date:
+        query = query.filter(
+            Loan.issue_date >= from_date
+        )
+
+    if to_date:
+        query = query.filter(
+            Loan.issue_date <= to_date
+        )
+
+    return (
+        query.order_by(Loan.issue_date.desc())
+        .all()
+    )
