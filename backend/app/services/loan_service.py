@@ -1,4 +1,5 @@
 from datetime import date
+from sqlalchemy import extract
 from decimal import Decimal
 from typing import Optional
 
@@ -192,8 +193,6 @@ def search_loans(
         .all()
     )
 
-from datetime import date
-
 
 def get_overdue_loans(
     db: Session,
@@ -209,6 +208,29 @@ def get_overdue_loans(
             Loan.finance_owner_id == finance_owner_id,
             Loan.status == "ACTIVE",
             Loan.due_date < date.today(),
+        )
+        .order_by(Loan.due_date.asc())
+        .all()
+    )
+
+
+def get_loans_due_this_month(
+    db: Session,
+    finance_owner_id: int,
+):
+    """
+    Return all active loans whose due date falls in the current month.
+    """
+
+    today = date.today()
+
+    return (
+        db.query(Loan)
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Loan.status == "ACTIVE",
+            extract("month", Loan.due_date) == today.month,
+            extract("year", Loan.due_date) == today.year,
         )
         .order_by(Loan.due_date.asc())
         .all()
