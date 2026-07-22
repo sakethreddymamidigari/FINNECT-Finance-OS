@@ -12,6 +12,7 @@ from backend.app.schemas.dashboard import (
     DashboardResponse,
     ProfitSummaryResponse,
 )
+from backend.app.utils.interest_calculator import calculate_interest
 
 
 def get_dashboard(
@@ -167,6 +168,7 @@ def get_dashboard(
         recent_payments=recent_payments,
     )
 
+
 def get_profit_summary(
     db: Session,
     finance_owner_id: int,
@@ -174,9 +176,13 @@ def get_profit_summary(
     to_date: date,
 ):
     """
-    Return profit summary for the selected period.
+    Return the profit summary for the selected date range.
+
+    Interest is calculated dynamically up to today so the
+    report always reflects the latest accrued amount.
     """
 
+    # Fetch all loans issued within the selected period.
     loans = (
         db.query(Loan)
         .filter(
@@ -190,9 +196,26 @@ def get_profit_summary(
     total_principal = Decimal("0.00")
     total_interest = Decimal("0.00")
 
+    today = date.today()
+
+    # Calculate the latest accrued interest for every loan.
     for loan in loans:
+
         total_principal += loan.principal_amount
-        total_interest += loan.total_interest_paid
+
+        accrued_interest = calculate_interest(
+            principal=loan.remaining_principal,
+            rate=loan.interest_rate,
+            method=loan.interest_method,
+            start_date=loan.last_interest_calculated_on,
+            end_date=today,
+        )
+
+        # Add both collected interest and currently accrued interest.
+        total_interest += (
+            loan.total_interest_paid +
+            accrued_interest
+        )
 
     return ProfitSummaryResponse(
         total_principal=total_principal,
