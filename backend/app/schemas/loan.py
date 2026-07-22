@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-
+from typing import List
 from pydantic import BaseModel, ConfigDict
 
 
@@ -33,3 +33,30 @@ class LoanResponse(BaseModel):
     status: str
 
     model_config = ConfigDict(from_attributes=True)
+
+class LoanStatementPaymentResponse(BaseModel):
+    """
+    Payment details for the loan statement.
+    """
+
+    payment_date: date
+    amount_paid: Decimal
+    principal_paid: Decimal
+    interest_paid: Decimal
+    payment_mode: str
+    remarks: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LoanStatementResponse(BaseModel):
+    """
+    Complete statement for a single loan.
+    """
+
+    loan: LoanResponse
+    customer_name: str
+    customer_phone: str
+    accrued_interest: Decimal
+    total_outstanding: Decimal
+    payments: List[LoanStatementPaymentResponse]

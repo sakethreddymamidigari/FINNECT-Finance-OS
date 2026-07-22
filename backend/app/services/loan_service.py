@@ -7,10 +7,14 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from backend.app.models.customer import Customer
+from backend.app.models.payment import Payment
 from backend.app.models.loan import Loan
 from backend.app.schemas.loan import LoanCreate, LoanUpdate
 from backend.app.utils.interest_calculator import calculate_interest
-
+from backend.app.schemas.loan import (
+    LoanStatementPaymentResponse,
+    LoanStatementResponse,
+)
 
 
 def create_loan(
@@ -308,3 +312,77 @@ def get_interest_summary(
         "total_payable": total_payable,
         "calculated_to": today,
     }
+
+def get_loan_statement(
+    db: Session,
+    loan_id: int,
+    finance_owner_id: int,
+):
+    """
+    Return the complete statement for a single loan.
+    """
+
+    loan = (
+        db.query(Loan)
+        .filter(
+            Loan.id == loan_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    if loan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Loan not found.",
+        )
+
+    customer = (
+        db.query(Customer)
+        .filter(
+            Customer.id == loan.customer_id,
+            Customer.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    payments = (
+        db.query(Payment)
+        .filter(
+            Payment.loan_id == loan.id,
+            Payment.finance_owner_id == finance_owner_id,
+        )
+        .order_by(Payment.payment_date.desc())
+        .all()
+    )
+
+    accrued_interest = calculate_interest(
+        principal=loan.remaining_principal,
+        rate=loan.interest_rate,
+        method=loan.interest_method,
+        start_date=loan.last_interest_calculated_on,
+        end_date=date.today(),
+    )
+
+    payment_history = []
+
+    for payment in payments:
+        payment_history.append(
+            LoanStatementPaymentResponse(
+                payment_date=payment.payment_date,
+                amount_paid=payment.amount_paid,
+                principal_paid=payment.principal_paid,
+                interest_paid=payment.interest_paid,
+                payment_mode=payment.payment_mode,
+                remarks=payment.remarks,
+            )
+        )
+
+    return LoanStatementResponse(
+        loan=loan,
+        customer_name=customer.full_name,
+        customer_phone=customer.phone,
+        accrued_interest=accrued_interest,
+        total_outstanding=loan.remaining_principal + accrued_interest,
+        payments=payment_history,
+    )

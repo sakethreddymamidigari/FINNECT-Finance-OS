@@ -7,7 +7,12 @@ from sqlalchemy.orm import Session
 from backend.app.core.auth import get_current_finance_owner
 from backend.app.database.deps import get_db
 from backend.app.models.finance_owner import FinanceOwner
-from backend.app.schemas.loan import LoanCreate, LoanUpdate, LoanResponse
+from backend.app.schemas.loan import (
+    LoanCreate,
+    LoanUpdate,
+    LoanResponse,
+    LoanStatementResponse,
+)
 from backend.app.services.loan_service import (
     create_loan,
     get_loans,
@@ -18,6 +23,8 @@ from backend.app.services.loan_service import (
     get_loans_due_this_month,
     get_loans_due_by_month,
     get_interest_summary,
+    get_loan_statement,
+
 )
 router = APIRouter(
     prefix="/loans",
@@ -165,6 +172,28 @@ def get_interest_summary_endpoint(
     # the interest calculation.
     
     return get_interest_summary(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=current_owner.id,
+    )
+
+@router.get(
+    "/{loan_id}/statement",
+    response_model=LoanStatementResponse,
+    summary="Loan Statement",
+)
+def get_loan_statement_endpoint(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner,
+    ),
+):
+    """
+    Return the complete statement for a single loan.
+    """
+
+    return get_loan_statement(
         db=db,
         loan_id=loan_id,
         finance_owner_id=current_owner.id,
