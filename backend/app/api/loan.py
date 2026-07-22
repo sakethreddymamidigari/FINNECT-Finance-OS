@@ -18,8 +18,8 @@ from backend.app.services.loan_service import (
     get_overdue_loans,
     get_loans_due_this_month,
     get_loans_due_by_month,
+    get_interest_summary,
 )
-
 router = APIRouter(
     prefix="/loans",
     tags=["Loans"],
@@ -163,6 +163,30 @@ def get_loans_due_by_month_endpoint(
         finance_owner_id=current_owner.id,
         month=month,
         year=year,
+    )
+
+@router.get(
+    "/{loan_id}/interest-summary",
+    summary="Get Loan Interest Summary",
+)
+def get_interest_summary_endpoint(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Calculate the current interest for a loan without
+    modifying any database values.
+    """
+
+    # Delegate the calculation to the service layer.
+    # The service validates ownership and performs
+    # the interest calculation.
+    
+    return get_interest_summary(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=current_owner.id,
     )
 
 @router.get(

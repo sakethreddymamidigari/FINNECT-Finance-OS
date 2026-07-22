@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from backend.app.models.customer import Customer
 from backend.app.models.loan import Loan
 from backend.app.schemas.loan import LoanCreate, LoanUpdate
+from backend.app.utils.interest_calculator import calculate_interest
+
 
 
 def create_loan(
@@ -257,3 +259,73 @@ def get_loans_due_by_month(
         .order_by(Loan.due_date.asc())
         .all()
     )
+
+def get_interest_summary(
+    db: Session,
+    loan_id: int,
+    finance_owner_id: int,
+):
+    """
+    Return the current interest summary for a loan.
+
+    The calculation is performed dynamically using today's date.
+    Nothing is stored in the database.
+    """
+
+    # Fetch the requested loan only if it belongs to
+    # the authenticated finance owner.
+    loan = (
+        db.query(Loan)
+        .filter(
+            Loan.id == loan_id,
+            Loan.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    # Loan does not exist or belongs to another owner.
+    if loan is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Loan not found.",
+        )
+
+    # Interest is calculated up to today's date.
+    today = date.today()
+
+    # Use the existing utility so that the same
+    # interest calculation logic is reused everywhere.
+    accrued_interest = calculate_interest(
+        principal=loan.remaining_principal,
+        rate=loan.interest_rate,
+        method=loan.interest_method,
+        start_date=loan.last_interest_calculated_on,
+        end_date=today,
+    )
+
+    # Remaining principal + accrued interest
+    # represents the amount currently payable.
+    total_payable = (
+        loan.remaining_principal +
+        accrued_interest
+    )
+
+    # Return a lightweight summary.
+    # This endpoint will later be reused by:
+    # - Dashboard
+    # - Loan Closure
+    # - Profit Reports
+    # Normalize the interest method before returning it
+    # so every API response follows the same format.
+    interest_method = loan.interest_method.strip().upper()
+
+    return {
+        "loan_id": loan.id,
+        "principal_amount": loan.principal_amount,
+        "remaining_principal": loan.remaining_principal,
+        "interest_method": interest_method,
+        "interest_rate": loan.interest_rate,
+        "accrued_interest": accrued_interest,
+        "total_payable": total_payable,
+        "calculated_to": today,
+    }
