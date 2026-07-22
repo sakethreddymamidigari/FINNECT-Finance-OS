@@ -17,11 +17,13 @@ from backend.app.schemas.dashboard import (
     DashboardResponse,
     ProfitSummaryResponse,
     MaturityReportResponse,
+    OverdueLoansResponse,
 )
 from backend.app.services.dashboard_service import (
     get_dashboard,
     get_profit_summary,
     get_maturity_report,
+    get_overdue_loans,
 )
 
 # --------------------------------------------------
@@ -100,4 +102,23 @@ def get_maturity_report_endpoint(
         finance_owner_id=current_owner.id,
         month=month,
         year=year,
+    )
+
+@router.get(
+    "/overdue-loans",
+    response_model=OverdueLoansResponse,
+)
+def get_overdue_loans_endpoint(
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner,
+    ),
+):
+    """
+    Return all overdue active loans for the logged-in finance owner.
+    """
+
+    return get_overdue_loans(
+        db=db,
+        finance_owner_id=current_owner.id,
     )

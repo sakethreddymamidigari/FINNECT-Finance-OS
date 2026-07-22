@@ -85,3 +85,28 @@ class MaturityReportResponse(BaseModel):
     year: int
     loan_count: int
     loans: List[MaturityLoanResponse]
+
+class OverdueLoanResponse(BaseModel):
+    """
+    Response model for an overdue loan.
+    """
+
+    loan_id: int
+    customer_name: str
+    mobile_number: str
+    due_date: date
+    days_overdue: int
+    remaining_principal: Decimal
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OverdueLoansResponse(BaseModel):
+    """
+    Response model for overdue loans report.
+    """
+
+    overdue_count: int
+    total_overdue_principal: Decimal
+    loans: List[OverdueLoanResponse]

@@ -14,6 +14,8 @@ from backend.app.schemas.dashboard import (
     ProfitSummaryResponse,
     MaturityLoanResponse,
     MaturityReportResponse,
+    OverdueLoanResponse,
+    OverdueLoansResponse,
 )
 
 def get_dashboard(
@@ -271,4 +273,55 @@ def get_maturity_report(
         year=year,
         loan_count=len(maturity_loans),
         loans=maturity_loans,
+    )
+
+def get_overdue_loans(
+    db: Session,
+    finance_owner_id: int,
+):
+    """
+    Return all overdue active loans for the authenticated
+    finance owner.
+    """
+
+    today = date.today()
+
+    loans = (
+        db.query(Loan, Customer)
+        .join(
+            Customer,
+            Loan.customer_id == Customer.id,
+        )
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Loan.status == "ACTIVE",
+            Loan.due_date < today,
+        )
+        .order_by(Loan.due_date.asc())
+        .all()
+    )
+
+    overdue_loans = []
+    total_overdue_principal = Decimal("0.00")
+
+    for loan, customer in loans:
+
+        total_overdue_principal += loan.remaining_principal
+
+        overdue_loans.append(
+            OverdueLoanResponse(
+                loan_id=loan.id,
+                customer_name=customer.full_name,
+                mobile_number=customer.phone,
+                due_date=loan.due_date,
+                days_overdue=(today - loan.due_date).days,
+                remaining_principal=loan.remaining_principal,
+                status=loan.status,
+            )
+        )
+
+    return OverdueLoansResponse(
+        overdue_count=len(overdue_loans),
+        total_overdue_principal=total_overdue_principal,
+        loans=overdue_loans,
     )
