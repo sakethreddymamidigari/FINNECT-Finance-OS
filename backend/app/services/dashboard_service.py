@@ -8,12 +8,13 @@ from sqlalchemy import and_
 from backend.app.models.customer import Customer
 from backend.app.models.loan import Loan
 from backend.app.models.payment import Payment
+from backend.app.utils.interest_calculator import calculate_interest
 from backend.app.schemas.dashboard import (
     DashboardResponse,
     ProfitSummaryResponse,
+    MaturityLoanResponse,
+    MaturityReportResponse,
 )
-from backend.app.utils.interest_calculator import calculate_interest
-
 
 def get_dashboard(
     db: Session,
@@ -222,4 +223,52 @@ def get_profit_summary(
         total_interest=total_interest,
         total_amount=total_principal + total_interest,
         loan_count=len(loans),
+    )
+
+def get_maturity_report(
+    db: Session,
+    finance_owner_id: int,
+    month: int,
+    year: int,
+):
+    """
+    Return all loans maturing in the selected month and year.
+    """
+
+    loans = (
+        db.query(Loan, Customer)
+        .join(
+            Customer,
+            Loan.customer_id == Customer.id,
+        )
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            func.extract("month", Loan.due_date) == month,
+            func.extract("year", Loan.due_date) == year,
+        )
+        .order_by(Loan.due_date.asc())
+        .all()
+    )
+
+    maturity_loans = []
+
+    for loan, customer in loans:
+        maturity_loans.append(
+            MaturityLoanResponse(
+                loan_id=loan.id,
+                customer_name=customer.full_name,
+                mobile_number=customer.phone,
+                principal_amount=loan.principal_amount,
+                remaining_principal=loan.remaining_principal,
+                issue_date=loan.issue_date,
+                due_date=loan.due_date,
+                status=loan.status,
+            )
+        )
+
+    return MaturityReportResponse(
+        month=month,
+        year=year,
+        loan_count=len(maturity_loans),
+        loans=maturity_loans,
     )

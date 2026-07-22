@@ -5,6 +5,7 @@ These schemas define the response structure returned by the
 Dashboard API.
 """
 
+from datetime import date
 from decimal import Decimal
 from typing import List
 
@@ -57,3 +58,30 @@ class ProfitSummaryResponse(BaseModel):
     total_interest: Decimal
     total_amount: Decimal
     loan_count: int
+
+class MaturityLoanResponse(BaseModel):
+    """
+    Response model for a loan maturing in the selected month.
+    """
+
+    loan_id: int
+    customer_name: str
+    mobile_number: str
+    principal_amount: Decimal
+    remaining_principal: Decimal
+    issue_date: date
+    due_date: date
+    status: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MaturityReportResponse(BaseModel):
+    """
+    Response model for the maturity report.
+    """
+
+    month: int
+    year: int
+    loan_count: int
+    loans: List[MaturityLoanResponse]

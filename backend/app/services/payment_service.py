@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime, date
 from decimal import Decimal
 
 from fastapi import HTTPException, status
@@ -66,6 +66,7 @@ def create_payment(
     if loan.remaining_principal <= Decimal("0.00"):
         loan.remaining_principal = Decimal("0.00")
         loan.status = "CLOSED"
+        loan.closed_at = datetime.utcnow()
 
     db_payment = Payment(
         finance_owner_id=finance_owner_id,
@@ -204,8 +205,10 @@ def delete_payment(
         loan.last_interest_calculated_on = loan.start_date
 
     # Reopen loan if necessary
+    # Reopen the loan if the latest payment is deleted.
     if loan.status == "CLOSED":
         loan.status = "ACTIVE"
+        loan.closed_at = None
 
     db.delete(payment)
     db.commit()

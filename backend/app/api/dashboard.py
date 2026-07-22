@@ -16,10 +16,12 @@ from backend.app.models.finance_owner import FinanceOwner
 from backend.app.schemas.dashboard import (
     DashboardResponse,
     ProfitSummaryResponse,
+    MaturityReportResponse,
 )
 from backend.app.services.dashboard_service import (
     get_dashboard,
     get_profit_summary,
+    get_maturity_report,
 )
 
 # --------------------------------------------------
@@ -75,4 +77,27 @@ def get_profit_summary_endpoint(
         finance_owner_id=current_owner.id,
         from_date=from_date,
         to_date=to_date,
+    )
+
+@router.get(
+    "/maturity-report",
+    response_model=MaturityReportResponse,
+)
+def get_maturity_report_endpoint(
+    month: int = Query(..., ge=1, le=12),
+    year: int = Query(..., ge=2000),
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner,
+    ),
+):
+    """
+    Return all loans maturing in the selected month and year.
+    """
+
+    return get_maturity_report(
+        db=db,
+        finance_owner_id=current_owner.id,
+        month=month,
+        year=year,
     )

@@ -62,7 +62,7 @@ class Loan(Base):
         nullable=False,
     )
 
-    # NEW FIELD
+    # Date from which interest starts accruing.
     interest_start_date = Column(
         Date,
         nullable=False,
@@ -73,11 +73,19 @@ class Loan(Base):
         default="ACTIVE",
     )
 
+    # Stores when the loan is permanently closed.
+    # It remains NULL while the loan is active.
+    closed_at = Column(
+        DateTime,
+        nullable=True,
+    )
+
     created_at = Column(
         DateTime,
         default=datetime.utcnow,
     )
 
+    # Stores the last date up to which interest has been calculated.
     last_interest_calculated_on = Column(
         Date,
         nullable=True,
