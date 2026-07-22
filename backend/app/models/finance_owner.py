@@ -33,3 +33,10 @@ class FinanceOwner(Base):
         back_populates="finance_owner",
         cascade="all, delete-orphan",
     )
+
+    settings = relationship(
+        "FinanceSettings",
+        back_populates="finance_owner",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )

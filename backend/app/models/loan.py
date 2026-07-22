@@ -73,6 +73,19 @@ class Loan(Base):
         default="ACTIVE",
     )
 
+    parent_loan_id = Column(
+        Integer,
+        ForeignKey("loans.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    parent_loan = relationship(
+        "Loan",
+        remote_side="Loan.id",
+        foreign_keys=[parent_loan_id],
+        backref="child_loans",
+    )
+
     # Stores when the loan is permanently closed.
     # It remains NULL while the loan is active.
     closed_at = Column(
@@ -99,6 +112,13 @@ class Loan(Base):
     customer = relationship(
         "Customer",
         back_populates="loans",
+    )
+
+    renewals = relationship(
+        "LoanRenewal",
+        foreign_keys="LoanRenewal.old_loan_id",
+        back_populates="old_loan",
+        cascade="all, delete-orphan",
     )
 
     payments = relationship(

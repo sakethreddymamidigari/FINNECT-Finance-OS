@@ -1,0 +1,36 @@
+### Renew Loan (CONTINUE)
+
+POST http://127.0.0.1:8000/loans/1/renew
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+
+{
+    "renewal_type": "CONTINUE",
+    "new_due_date": "2027-12-31",
+    "interest_method": "PERCENTAGE",
+    "interest_rate": 5,
+    "remarks": "Extended by one year"
+}
+
+###
+
+### Renew Loan (CAPITALIZE)
+
+POST http://127.0.0.1:8000/loans/1/renew
+Authorization: Bearer YOUR_ACCESS_TOKEN
+Content-Type: application/json
+
+{
+    "renewal_type": "CAPITALIZE",
+    "new_due_date": "2027-12-31",
+    "interest_method": "PERCENTAGE",
+    "interest_rate": 5,
+    "remarks": "Capitalized outstanding interest"
+}
+
+###
+
+### Renewal History
+
+GET http://127.0.0.1:8000/loans/1/renewals
+Authorization: Bearer YOUR_ACCESS_TOKEN
