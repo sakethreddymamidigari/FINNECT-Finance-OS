@@ -8,12 +8,14 @@ from backend.app.schemas.customer import (
     CustomerCreate,
     CustomerResponse,
     CustomerListResponse,
+    CustomerLedgerResponse,
 )
 from backend.app.services.customer_service import (
     create_customer,
     get_customers,
     get_customer_names,
     search_customers,
+    get_customer_ledger,
 )
 from backend.app.core.auth import get_current_finance_owner
 from backend.app.models.finance_owner import FinanceOwner
@@ -88,5 +90,25 @@ def get_customer_names_endpoint(
 
     return get_customer_names(
         db=db,
+        finance_owner_id=current_owner.id,
+    )
+
+@router.get(
+    "/{customer_id}/ledger",
+    response_model=CustomerLedgerResponse,
+    summary="Customer Ledger",
+)
+def get_customer_ledger_endpoint(
+    customer_id: int,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(get_current_finance_owner),
+):
+    """
+    Return the complete ledger for the selected customer.
+    """
+
+    return get_customer_ledger(
+        db=db,
+        customer_id=customer_id,
         finance_owner_id=current_owner.id,
     )
