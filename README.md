@@ -1,8 +1,18 @@
 # FINNECT Finance OS
 
-FINNECT Finance OS is a scalable full-stack loan management platform designed for local finance businesses to replace traditional paper-based loan records with a secure, modern, and production-ready digital system.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql&logoColor=white" />
+  <img src="https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/JWT-Authentication-black?style=for-the-badge" />
+</p>
 
-The platform enables finance owners to manage customers, loans, repayments, and financial records while providing a scalable backend architecture that can later power web and mobile applications.
+## Overview
+
+FINNECT Finance OS is a backend system built for finance businesses to manage customers, loans, payments, renewals, settlements, and business insights from a single platform.
+
+The application is designed around real-world lending workflows instead of basic CRUD operations. It supports multiple interest calculation methods, loan renewals, settlements, payment tracking, and dashboard reports.
 
 ---
 
@@ -11,235 +21,392 @@ The platform enables finance owners to manage customers, loans, repayments, and 
 ## Authentication
 
 - Finance Owner Registration
-- Secure Login
+- Finance Owner Login
 - JWT Authentication
-- Password Hashing (bcrypt)
-- Protected API Endpoints
+- Password Hashing
+- Protected APIs
 
 ---
 
 ## Customer Management
 
-- Register Customers
-- View Customer Details
-- Customer Listing
-- Customer–Finance Owner Association
-- Multi-tenant Data Isolation
+- Register Customer
+- Update Customer
+- View Customer
+- Search Customers
+- List Customers
 
 ---
 
 ## Loan Management
 
-- Create Loans
-- Loan Status Tracking
-- Customer–Loan Association
-- Finance Owner–Loan Association
-- Dynamic Interest Rate per Loan
-- Multiple Interest Calculation Methods
-    - Monthly Percentage
-    - ₹ per ₹100 per Month
-- Remaining Principal Tracking
-- Total Principal Paid Tracking
-- Total Interest Paid Tracking
-- Interest Calculation Timeline
+- Create Loan
+- Update Loan
+- View Loan Details
+- Loan Statement
+- Interest Summary
+- Settlement Preview
+- Loan Settlement
+- Loan Renewal
 
 ---
 
-## Payment Infrastructure
+## Payment Management
 
-- Payment Database Design
-- Payment History Tracking
-- Loan–Payment Relationship
-- Finance Owner–Payment Relationship
-- Production-ready Payment Schema
+- Add Payment
+- Interest-first payment allocation
+- Principal payment handling
+- Latest payment deletion restriction
+- Payment history
 
 ---
 
-# Roadmap
+## Interest Calculation
 
-## Payment Module
+FINNECT supports two different interest calculation methods.
 
-- Payment APIs
-- Interest Calculation Engine
-- Automatic Interest Allocation
-- Automatic Principal Allocation
-- Loan Closure Logic
+### Percentage Method
+
+Monthly interest calculated using percentage.
+
+Example
+
+- Principal : ₹100000
+- Interest : 2% per month
+
+---
+
+### Rupees Per ₹100 Method
+
+Commonly used by local finance businesses.
+
+Example
+
+- ₹3 per ₹100 per month
+
+---
+
+## Loan Renewal
+
+Supports extending active loans while preserving complete renewal history.
+
+Features
+
+- New Due Date
+- New Interest Rate
+- New Interest Method
+- Renewal Notes
+- Renewal Tracking
+
+---
+
+## Loan Settlement
+
+Supports settlement of active loans.
+
+Features
+
+- Settlement Preview
+- Interest First Settlement
+- Principal Adjustment
+- Waived Amount Calculation
+- Settlement Amount
+- Settlement Reason
+- Closure Type
+
+---
 
 ## Dashboard
+
+Dashboard provides business insights.
+
+### Summary
 
 - Total Customers
 - Active Loans
 - Closed Loans
-- Outstanding Amount
-- Monthly Collections
-- Interest Earned
+- Total Principal Disbursed
+- Remaining Principal
+- Total Principal Paid
+- Total Interest Paid
+- Today's Collection
+
+### Reports
+
 - Profit Summary
-
-## Reports
-
-- Customer Statements
-- Loan Statements
-- Payment Statements
-- Profit Reports
-- Collection Reports
-
-## Search & Filters
-
-- Customer Search
-- Mobile Number Search
-- Loan Status Filter
-- Due Date Filter
-- Date Range Reports
-
-## Security
-
-- Role-based Authorization
-- Global Exception Handling
-- Request Validation
-- Secure API Responses
-
-## Deployment
-
-- Docker
-- Production Configuration
-- Cloud Deployment
+- Maturity Report
+- Overdue Loans
+- Closed Loans
 
 ---
 
-# Future Enhancements
+# Technology Stack
 
-- WhatsApp payment and loan maturity reminders
-- AI voice calling agents for automated customer reminders
-- Mobile application
-- OCR-based paper loan digitization
-- AI-powered financial insights
-- Multi-language support
-
----
-
-# Tech Stack
-
-### Backend
-
-- Python
-- FastAPI
-- PostgreSQL
-- SQLAlchemy ORM
-- Alembic
-- Pydantic
-
-### Authentication
-
-- JWT
-- Passlib (bcrypt)
-
-### Documentation
-
-- Swagger UI
-- OpenAPI
-
-### DevOps
-
-- Docker (Planned)
-- Git
-- GitHub
+| Category         | Technology       |
+|------------------|------------------|
+| Language         | Python           |
+| Framework        | FastAPI          |
+| ORM              | SQLAlchemy       |
+| Database         | PostgreSQL       |
+| Authentication   | JWT              |
+| Password Hashing | Passlib + BCrypt |
+| Validation       | Pydantic         |
+| API Documentation| Swagger UI       |
+| Migrations       | Alembic          |
 
 ---
 
 # Project Structure
 
-```text
-FINNECT/
+```
+backend/
+│
+├── app/
+│   ├── api/
+│   ├── core/
+│   ├── database/
+│   ├── models/
+│   ├── schemas/
+│   ├── services/
+│   ├── utils/
+│   └── main.py
 │
 ├── alembic/
 │
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   ├── core/
-│   │   ├── database/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   └── main.py
-│   │
-│   ├── requirements.txt
-│   └── README.md
+├── requirements.txt
 │
-└── .env
+└── README.md
 ```
-
----
-
-# Architecture
-
-FINNECT follows a layered architecture to improve maintainability, scalability, and testability.
-
-```
-Client
-   │
-REST API
-   │
-API Layer
-   │
-Service Layer
-   │
-Database Layer
-   │
-PostgreSQL
-```
-
-Database schema changes are managed using Alembic migrations to ensure safe and version-controlled schema evolution.
 
 ---
 
 # Database Design
 
-Core entities:
-
-- Finance Owners
-- Customers
-- Loans
-- Payments
-
-Relationships:
-
-- One Finance Owner → Many Customers
-- One Finance Owner → Many Loans
-- One Finance Owner → Many Payments
-- One Customer → Many Loans
-- One Loan → Many Payments
-
----
-
-# Current Status
-
-**Version:** v0.5.0
-
-## Completed
-
-- Authentication Module
-- Customer Management Module
-- Loan Management Module
-- Payment Database Infrastructure
-- Alembic Migration System
-- Production-ready Database Schema
-
-## Currently Developing
-
-- Payment Service
-- Interest Calculation Engine
-- Payment APIs
+```
+Finance Owner
+      │
+      ▼
+ Customer
+      │
+      ▼
+    Loan
+      │
+      ├──────────────┐
+      ▼              ▼
+ Payment        Loan Renewal
+```
 
 ---
 
-# Vision
+# Business Workflow
 
-FINNECT aims to become a comprehensive Finance Management Operating System that enables local finance businesses to digitally manage lending operations, automate financial calculations, improve operational efficiency, and scale seamlessly from small finance offices to enterprise-level lending platforms.
+```
+Finance Owner Login
+
+        │
+
+Create Customer
+
+        │
+
+Create Loan
+
+        │
+
+Receive Payments
+
+        │
+
+Renew Loan (Optional)
+
+        │
+
+Settlement (Optional)
+
+        │
+
+Dashboard Reports
+```
 
 ---
 
-# License
+# API Modules
 
-This project is under active development.
+## Authentication
+
+```
+POST   /finance-owners/register
+POST   /finance-owners/login
+```
+
+---
+
+## Customers
+
+```
+POST   /customers
+GET    /customers
+GET    /customers/{id}
+PUT    /customers/{id}
+GET    /customers/search
+```
+
+---
+
+## Loans
+
+```
+POST   /loans
+GET    /loans
+GET    /loans/{id}
+PUT    /loans/{id}
+
+GET    /loans/{id}/statement
+GET    /loans/{id}/interest-summary
+
+GET    /loans/{id}/settlement-preview
+POST   /loans/{id}/settlement
+
+POST   /loans/{id}/renew
+```
+
+---
+
+## Payments
+
+```
+POST   /payments
+PUT    /payments/{id}
+DELETE /payments/{id}
+```
+
+---
+
+## Dashboard
+
+```
+GET /dashboard
+
+GET /dashboard/profit-summary
+
+GET /dashboard/maturity-report
+
+GET /dashboard/overdue-loans
+
+GET /dashboard/closed-loans
+```
+
+---
+
+# API Documentation
+
+After starting the server
+
+```
+http://127.0.0.1:8000/docs
+```
+
+Interactive Swagger UI
+
+---
+
+# Installation
+
+Clone the repository
+
+```bash
+git clone https://github.com/sakethreddymamidigari/FINNECT-Finance-OS.git
+```
+
+Move into the project
+
+```bash
+cd FINNECT-Finance-OS
+```
+
+Create virtual environment
+
+```bash
+python -m venv venv
+```
+
+Activate virtual environment
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run migrations
+
+```bash
+alembic upgrade head
+```
+
+Run the application
+
+```bash
+python -m uvicorn backend.app.main:app --reload
+```
+
+---
+
+# Environment Variables
+
+Create a `.env` file.
+
+```
+DATABASE_URL=postgresql://username:password@localhost:5432/finnect
+
+SECRET_KEY=your_secret_key
+
+ALGORITHM=HS256
+
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+---
+
+# Security
+
+- JWT Authentication
+- Password Hashing
+- Protected Routes
+- Input Validation
+- SQLAlchemy ORM
+- Pydantic Validation
+
+---
+
+# Future Enhancements
+
+- WhatsApp Payment Reminders
+- Export Reports to Excel
+- PDF Statements
+- Notification System
+- Dashboard Charts
+- Analytics
+- Mobile Application
+
+---
+
+# Version
+
+Current Version
+
+```
+v1.0.0
+``'

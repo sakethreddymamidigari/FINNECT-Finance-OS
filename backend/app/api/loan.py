@@ -96,7 +96,6 @@ def search_loans_endpoint(
     return search_loans(
         db=db,
         finance_owner_id=current_owner.id,
-        customer_name=customer_name,
         mobile_number=mobile_number,
         status_filter=status_filter,
         from_date=from_date,

@@ -16,6 +16,8 @@ from backend.app.schemas.dashboard import (
     MaturityReportResponse,
     OverdueLoanResponse,
     OverdueLoansResponse,
+    ClosedLoanResponse,
+    ClosedLoansReportResponse,
 )
 
 def get_dashboard(
@@ -324,4 +326,72 @@ def get_overdue_loans(
         overdue_count=len(overdue_loans),
         total_overdue_principal=total_overdue_principal,
         loans=overdue_loans,
+    )
+
+def get_closed_loans(
+    db: Session,
+    finance_owner_id: int,
+    from_date: date | None = None,
+    to_date: date | None = None,
+    closure_type: str | None = None,
+):
+    """
+    Return all closed loans for the authenticated finance owner.
+    """
+
+    loans = (
+        db.query(Loan, Customer)
+        .join(
+            Customer,
+            Loan.customer_id == Customer.id,
+        )
+        .filter(
+            Loan.finance_owner_id == finance_owner_id,
+            Loan.status == "CLOSED",
+        )
+    )
+
+    if from_date:
+        loans = loans.filter(
+            func.date(Loan.closed_at) >= from_date,
+        )
+
+    if to_date:
+        loans = loans.filter(
+            func.date(Loan.closed_at) <= to_date,
+        )
+
+    if closure_type:
+        loans = loans.filter(
+            Loan.closure_type == closure_type.upper(),
+        )
+
+    results = (
+        loans.order_by(Loan.closed_at.desc())
+        .all()
+    )
+
+    closed_loans = []
+
+    for loan, customer in results:
+        closed_loans.append(
+            ClosedLoanResponse(
+                loan_id=loan.id,
+                customer_name=customer.full_name,
+                mobile_number=customer.phone,
+                principal_amount=loan.principal_amount,
+                total_principal_paid=loan.total_principal_paid,
+                total_interest_paid=loan.total_interest_paid,
+                settlement_amount=loan.settlement_amount,
+                waived_amount=loan.waived_amount,
+                closure_type=loan.closure_type,
+                closed_date=loan.closed_at.date()
+                if loan.closed_at
+                else None,
+            )
+        )
+
+    return ClosedLoansReportResponse(
+        loan_count=len(closed_loans),
+        loans=closed_loans,
     )

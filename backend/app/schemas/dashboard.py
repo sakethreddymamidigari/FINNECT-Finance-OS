@@ -110,3 +110,33 @@ class OverdueLoansResponse(BaseModel):
     overdue_count: int
     total_overdue_principal: Decimal
     loans: List[OverdueLoanResponse]
+
+class ClosedLoanResponse(BaseModel):
+    """
+    Response model for a closed loan.
+    """
+
+    loan_id: int
+    customer_name: str
+    mobile_number: str
+
+    principal_amount: Decimal
+    total_principal_paid: Decimal
+    total_interest_paid: Decimal
+
+    settlement_amount: Decimal | None = None
+    waived_amount: Decimal | None = None
+
+    closure_type: str
+    closed_date: date | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ClosedLoansReportResponse(BaseModel):
+    """
+    Response model for closed loans report.
+    """
+
+    loan_count: int
+    loans: List[ClosedLoanResponse]

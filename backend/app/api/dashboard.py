@@ -18,12 +18,14 @@ from backend.app.schemas.dashboard import (
     ProfitSummaryResponse,
     MaturityReportResponse,
     OverdueLoansResponse,
+    ClosedLoansReportResponse,
 )
 from backend.app.services.dashboard_service import (
     get_dashboard,
     get_profit_summary,
     get_maturity_report,
     get_overdue_loans,
+    get_closed_loans,
 )
 
 # --------------------------------------------------
@@ -121,4 +123,29 @@ def get_overdue_loans_endpoint(
     return get_overdue_loans(
         db=db,
         finance_owner_id=current_owner.id,
+    )
+
+@router.get(
+    "/closed-loans",
+    response_model=ClosedLoansReportResponse,
+)
+def get_closed_loans_endpoint(
+    from_date: date | None = None,
+    to_date: date | None = None,
+    closure_type: str | None = None,
+    db: Session = Depends(get_db),
+    current_owner: FinanceOwner = Depends(
+        get_current_finance_owner,
+    ),
+):
+    """
+    Return all closed loans for the logged-in finance owner.
+    """
+
+    return get_closed_loans(
+        db=db,
+        finance_owner_id=current_owner.id,
+        from_date=from_date,
+        to_date=to_date,
+        closure_type=closure_type,
     )

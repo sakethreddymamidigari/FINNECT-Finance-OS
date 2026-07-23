@@ -169,11 +169,6 @@ def search_loans(
         )
     )
 
-    if customer_name:
-        query = query.filter(
-            Customer.full_name.ilike(f"%{customer_name}%")
-        )
-
     if mobile_number:
         query = query.filter(
             Customer.phone.ilike(f"%{mobile_number}%")
