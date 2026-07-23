@@ -1,199 +1,202 @@
 # FINNECT Finance OS
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white" />
-  <img src="https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql&logoColor=white" />
-  <img src="https://img.shields.io/badge/SQLAlchemy-ORM-D71F00?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/JWT-Authentication-black?style=for-the-badge" />
-</p>
+> **A production-ready Loan Management System backend built with FastAPI, PostgreSQL, SQLAlchemy, and JWT Authentication for finance businesses.**
 
-## Overview
+FINNECT Finance OS is a backend application designed to digitize the day-to-day operations of finance businesses. It manages the complete loan lifecycle—from customer onboarding and loan issuance to payment collection, renewals, settlements, and business reporting.
 
-FINNECT Finance OS is a backend system built for finance businesses to manage customers, loans, payments, renewals, settlements, and business insights from a single platform.
-
-The application is designed around real-world lending workflows instead of basic CRUD operations. It supports multiple interest calculation methods, loan renewals, settlements, payment tracking, and dashboard reports.
+Unlike a basic CRUD application, FINNECT implements real-world financial business rules such as multiple interest calculation methods, interest-first payment allocation, loan renewals, settlement handling, and business dashboards.
 
 ---
 
-# Features
+## Key Features
 
-## Authentication
+### Authentication
 
-- Finance Owner Registration
-- Finance Owner Login
-- JWT Authentication
-- Password Hashing
-- Protected APIs
-
----
-
-## Customer Management
-
-- Register Customer
-- Update Customer
-- View Customer
-- Search Customers
-- List Customers
+* Finance Owner Registration
+* Secure Login
+* JWT Authentication
+* Password Hashing using BCrypt
+* Protected APIs
 
 ---
 
-## Loan Management
+### Customer Management
 
-- Create Loan
-- Update Loan
-- View Loan Details
-- Loan Statement
-- Interest Summary
-- Settlement Preview
-- Loan Settlement
-- Loan Renewal
+* Register Customers
+* Update Customer Information
+* View Customer Details
+* Search Customers
+* List All Customers
 
 ---
 
-## Payment Management
+### Loan Management
 
-- Add Payment
-- Interest-first payment allocation
-- Principal payment handling
-- Latest payment deletion restriction
-- Payment history
-
----
-
-## Interest Calculation
-
-FINNECT supports two different interest calculation methods.
-
-### Percentage Method
-
-Monthly interest calculated using percentage.
-
-Example
-
-- Principal : ₹100000
-- Interest : 2% per month
+* Create Loans
+* Update Loan Details
+* View Loan Information
+* Generate Loan Statements
+* Dynamic Interest Summary
+* Settlement Preview
+* Loan Settlement
+* Loan Renewal
 
 ---
 
-### Rupees Per ₹100 Method
+### Payment Management
 
-Commonly used by local finance businesses.
-
-Example
-
-- ₹3 per ₹100 per month
-
----
-
-## Loan Renewal
-
-Supports extending active loans while preserving complete renewal history.
-
-Features
-
-- New Due Date
-- New Interest Rate
-- New Interest Method
-- Renewal Notes
-- Renewal Tracking
+* Record Loan Payments
+* Automatic Interest-First Allocation
+* Principal Payment Tracking
+* Latest Payment Deletion Validation
+* Complete Payment History
 
 ---
 
-## Loan Settlement
+### Interest Calculation
 
-Supports settlement of active loans.
+FINNECT supports two interest calculation methods commonly used by finance businesses.
 
-Features
+#### Percentage Method
 
-- Settlement Preview
-- Interest First Settlement
-- Principal Adjustment
-- Waived Amount Calculation
-- Settlement Amount
-- Settlement Reason
-- Closure Type
+Monthly interest is calculated using a percentage of the outstanding principal.
 
----
+Example:
 
-## Dashboard
-
-Dashboard provides business insights.
-
-### Summary
-
-- Total Customers
-- Active Loans
-- Closed Loans
-- Total Principal Disbursed
-- Remaining Principal
-- Total Principal Paid
-- Total Interest Paid
-- Today's Collection
-
-### Reports
-
-- Profit Summary
-- Maturity Report
-- Overdue Loans
-- Closed Loans
+* Principal: ₹100,000
+* Interest Rate: 2% per month
 
 ---
 
-# Technology Stack
+#### Rupees per ₹100 Method
 
-| Category         | Technology       |
-|------------------|------------------|
-| Language         | Python           |
-| Framework        | FastAPI          |
-| ORM              | SQLAlchemy       |
-| Database         | PostgreSQL       |
-| Authentication   | JWT              |
-| Password Hashing | Passlib + BCrypt |
-| Validation       | Pydantic         |
-| API Documentation| Swagger UI       |
-| Migrations       | Alembic          |
+A traditional finance method where interest is charged as a fixed amount for every ₹100 borrowed.
+
+Example:
+
+* ₹3 per ₹100 per month
+
+---
+
+### Loan Renewal
+
+Supports extension of active loans while maintaining renewal history.
+
+* Updated Due Date
+* Updated Interest Rate
+* Updated Interest Method
+* Renewal Notes
+* Renewal History
+
+---
+
+### Loan Settlement
+
+Allows early settlement of active loans.
+
+Features include:
+
+* Settlement Preview
+* Interest-First Settlement
+* Principal Adjustment
+* Waived Amount Calculation
+* Settlement Amount
+* Settlement Reason
+* Closure Type
+
+---
+
+### Dashboard & Reports
+
+The dashboard provides business insights through dedicated reporting endpoints.
+
+#### Dashboard Summary
+
+* Total Customers
+* Active Loans
+* Closed Loans
+* Total Principal Disbursed
+* Remaining Principal
+* Total Principal Paid
+* Total Interest Paid
+* Today's Collection
+* Recent Loans
+* Recent Payments
+
+#### Business Reports
+
+* Profit Summary
+* Maturity Report
+* Overdue Loans
+* Closed Loans
+
+---
+
+# Tech Stack
+
+| Category           | Technology       |
+| ------------------ | ---------------- |
+| Language           | Python           |
+| Framework          | FastAPI          |
+| Database           | PostgreSQL       |
+| ORM                | SQLAlchemy       |
+| Data Validation    | Pydantic         |
+| Authentication     | JWT              |
+| Password Hashing   | Passlib + BCrypt |
+| Database Migration | Alembic          |
+| API Documentation  | Swagger UI       |
+
+---
+
+# Project Architecture
+
+```
+Finance Owner
+       │
+       ▼
+   Authentication
+       │
+       ▼
+    Customers
+       │
+       ▼
+      Loans
+       │
+ ┌─────┴───────────────┐
+ ▼                     ▼
+Payments          Loan Renewals
+       │
+       ▼
+Loan Settlement
+       │
+       ▼
+ Dashboard & Reports
+```
 
 ---
 
 # Project Structure
 
 ```
-backend/
-│
-├── app/
-│   ├── api/
-│   ├── core/
-│   ├── database/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   ├── utils/
-│   └── main.py
-│
+FINNECT-Finance-OS/
+
 ├── alembic/
+├── backend/
+│   └── app/
+│       ├── api/
+│       ├── core/
+│       ├── database/
+│       ├── models/
+│       ├── schemas/
+│       ├── services/
+│       ├── utils/
+│       └── main.py
 │
+├── .env.example
+├── .gitignore
+├── alembic.ini
 ├── requirements.txt
-│
 └── README.md
-```
-
----
-
-# Database Design
-
-```
-Finance Owner
-      │
-      ▼
- Customer
-      │
-      ▼
-    Loan
-      │
-      ├──────────────┐
-      ▼              ▼
- Payment        Loan Renewal
 ```
 
 ---
@@ -202,29 +205,21 @@ Finance Owner
 
 ```
 Finance Owner Login
-
-        │
-
-Create Customer
-
-        │
-
+          │
+          ▼
+Register Customer
+          │
+          ▼
 Create Loan
-
-        │
-
-Receive Payments
-
-        │
-
-Renew Loan (Optional)
-
-        │
-
-Settlement (Optional)
-
-        │
-
+          │
+          ▼
+Collect Payments
+          │
+     ┌────┴────┐
+     ▼         ▼
+Loan Renewal  Settlement
+          │
+          ▼
 Dashboard Reports
 ```
 
@@ -235,8 +230,8 @@ Dashboard Reports
 ## Authentication
 
 ```
-POST   /finance-owners/register
-POST   /finance-owners/login
+POST /finance-owners/register
+POST /finance-owners/login
 ```
 
 ---
@@ -257,9 +252,8 @@ GET    /customers/search
 
 ```
 POST   /loans
-GET    /loans
-GET    /loans/{id}
 PUT    /loans/{id}
+GET    /loans/{id}
 
 GET    /loans/{id}/statement
 GET    /loans/{id}/interest-summary
@@ -269,6 +263,8 @@ POST   /loans/{id}/settlement
 
 POST   /loans/{id}/renew
 ```
+
+> Update this section if your API exposes additional loan endpoints.
 
 ---
 
@@ -298,65 +294,67 @@ GET /dashboard/closed-loans
 
 ---
 
-# API Documentation
+# Running the Project
 
-After starting the server
-
-```
-http://127.0.0.1:8000/docs
-```
-
-Interactive Swagger UI
-
----
-
-# Installation
-
-Clone the repository
+## Clone Repository
 
 ```bash
 git clone https://github.com/sakethreddymamidigari/FINNECT-Finance-OS.git
-```
-
-Move into the project
-
-```bash
 cd FINNECT-Finance-OS
 ```
 
-Create virtual environment
+---
 
-```bash
-python -m venv venv
-```
-
-Activate virtual environment
+## Create Virtual Environment
 
 ### Windows
 
 ```bash
+python -m venv venv
 venv\Scripts\activate
 ```
 
 ### Linux / macOS
 
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
-Install dependencies
+---
+
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Run migrations
+---
+
+## Configure Environment
+
+Create a `.env` file using `.env.example`.
+
+Example:
+
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/finnect
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+```
+
+---
+
+## Run Database Migrations
 
 ```bash
 alembic upgrade head
 ```
 
-Run the application
+---
+
+## Start the Server
 
 ```bash
 python -m uvicorn backend.app.main:app --reload
@@ -364,49 +362,46 @@ python -m uvicorn backend.app.main:app --reload
 
 ---
 
-# Environment Variables
+# API Documentation
 
-Create a `.env` file.
+Once the server is running:
 
 ```
-DATABASE_URL=postgresql://username:password@localhost:5432/finnect
-
-SECRET_KEY=your_secret_key
-
-ALGORITHM=HS256
-
-ACCESS_TOKEN_EXPIRE_MINUTES=30
+http://127.0.0.1:8000/docs
 ```
+
+Swagger UI provides interactive API documentation for every endpoint.
 
 ---
 
 # Security
 
-- JWT Authentication
-- Password Hashing
-- Protected Routes
-- Input Validation
-- SQLAlchemy ORM
-- Pydantic Validation
+* JWT Authentication
+* Password Hashing
+* Protected Routes
+* Request Validation using Pydantic
+* SQLAlchemy ORM
+* Secure Password Storage
 
 ---
 
 # Future Enhancements
 
-- WhatsApp Payment Reminders
-- Export Reports to Excel
-- PDF Statements
-- Notification System
-- Dashboard Charts
-- Analytics
-- Mobile Application
+* WhatsApp Payment Reminders
+* PDF Loan Statements
+* Excel Report Export
+* Dashboard Analytics & Charts
+* Mobile Application
+* Notification System
 
 ---
 
 # Version
 
-Current Version
+**Current Version:** **v1.0.0**
 
-```
-v1.0.0
-``'
+---
+
+## Contributing
+
+This repository currently serves as a personal portfolio project. Suggestions and improvements are welcome through issues or pull requests
