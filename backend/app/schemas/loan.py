@@ -32,6 +32,12 @@ class LoanResponse(BaseModel):
     last_interest_calculated_on: date
     status: str
 
+    settlement_amount: Decimal | None = None
+    waived_amount: Decimal | None = None
+    settlement_date: date | None = None
+    settlement_reason: str | None = None
+    closure_type: str | None = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class LoanStatementPaymentResponse(BaseModel):

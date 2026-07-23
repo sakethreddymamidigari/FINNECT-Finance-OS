@@ -9,6 +9,31 @@ from backend.app.models.payment import Payment
 from backend.app.schemas.payment import PaymentCreate
 from backend.app.utils.interest_calculator import calculate_interest
 
+def calculate_outstanding_amount(
+    loan: Loan,
+    payment_date: date,
+):
+    """
+    Calculate the outstanding principal and interest for a loan
+    without modifying any data.
+    """
+
+    interest_due = calculate_interest(
+        principal=loan.remaining_principal,
+        rate=loan.interest_rate,
+        method=loan.interest_method,
+        start_date=loan.last_interest_calculated_on,
+        end_date=payment_date,
+    )
+
+    principal_due = loan.remaining_principal
+    total_due = principal_due + interest_due
+
+    return {
+        "principal_due": principal_due,
+        "interest_due": interest_due,
+        "total_due": total_due,
+    }
 
 def create_payment(
     db: Session,
@@ -44,13 +69,12 @@ def create_payment(
             detail="Payment amount must be greater than zero.",
         )
 
-    interest_due = calculate_interest(
-        principal=loan.remaining_principal,
-        rate=loan.interest_rate,
-        method=loan.interest_method,
-        start_date=loan.last_interest_calculated_on,
-        end_date=payment.payment_date,
+    due = calculate_outstanding_amount(
+        loan=loan,
+        payment_date=payment.payment_date,
     )
+
+    interest_due = due["interest_due"]
 
     interest_paid = min(amount, interest_due)
     principal_paid = amount - interest_paid

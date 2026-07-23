@@ -86,6 +86,15 @@ class Loan(Base):
         backref="child_loans",
     )
 
+    # Settlement details (applicable only for settlement closures)
+    settlement_amount = Column(Numeric(12, 2), nullable=True)
+    waived_amount = Column(Numeric(12, 2), nullable=True)
+    settlement_date = Column(Date, nullable=True)
+    settlement_reason = Column(String(255), nullable=True)
+
+    # Closure type: NORMAL or SETTLEMENT
+    closure_type = Column(String(20), nullable=True)
+
     # Stores when the loan is permanently closed.
     # It remains NULL while the loan is active.
     closed_at = Column(

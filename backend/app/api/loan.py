@@ -26,6 +26,16 @@ from backend.app.services.loan_service import (
     get_loan_statement,
 
 )
+from backend.app.schemas.loan_settlement import (
+    LoanSettlementPreviewResponse,
+    LoanSettlementRequest,
+)
+from backend.app.services.loan_service import (
+    get_settlement_preview,
+    settle_loan,
+)
+
+
 router = APIRouter(
     prefix="/loans",
     tags=["Loans"],
@@ -257,3 +267,52 @@ def update_existing_loan(
         )
 
     return loan
+
+@router.get(
+    "/{loan_id}/settlement-preview",
+    response_model=LoanSettlementPreviewResponse,
+    summary="Get loan settlement preview",
+)
+def settlement_preview(
+    loan_id: int,
+    settlement_date: date = Query(
+        ...,
+        description="Settlement date",
+    ),
+    db: Session = Depends(get_db),
+    finance_owner=Depends(get_current_finance_owner),
+):
+    """
+    Returns the outstanding principal, interest and total amount
+    before settling a loan.
+    """
+
+    return get_settlement_preview(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=finance_owner.id,
+        settlement_date=settlement_date,
+    )
+
+@router.post(
+    "/{loan_id}/settlement",
+    response_model=LoanResponse,
+    summary="Settle a loan",
+)
+def settle_loan_endpoint(
+    loan_id: int,
+    settlement: LoanSettlementRequest,
+    db: Session = Depends(get_db),
+    finance_owner=Depends(get_current_finance_owner),
+):
+    """
+    Settle a loan by accepting a negotiated amount
+    and waiving the remaining balance.
+    """
+
+    return settle_loan(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=finance_owner.id,
+        settlement=settlement,
+    )

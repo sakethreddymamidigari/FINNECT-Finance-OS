@@ -243,6 +243,33 @@ def get_loans_due_by_month(
         .all()
     )
 
+def calculate_current_outstanding(
+    loan: Loan,
+    calculation_date: date,
+):
+    """
+    Calculate the current outstanding amount for a loan.
+    Nothing is persisted to the database.
+    """
+
+    accrued_interest = calculate_interest(
+        principal=loan.remaining_principal,
+        rate=loan.interest_rate,
+        method=loan.interest_method,
+        start_date=loan.last_interest_calculated_on,
+        end_date=calculation_date,
+    )
+
+    total_outstanding = (
+        loan.remaining_principal +
+        accrued_interest
+    )
+
+    return {
+        "accrued_interest": accrued_interest,
+        "total_outstanding": total_outstanding,
+    }
+
 def get_interest_summary(
     db: Session,
     loan_id: int,
@@ -277,20 +304,9 @@ def get_interest_summary(
     today = date.today()
 
     # Use the existing utility so that the same
-    # interest calculation logic is reused everywhere.
-    accrued_interest = calculate_interest(
-        principal=loan.remaining_principal,
-        rate=loan.interest_rate,
-        method=loan.interest_method,
-        start_date=loan.last_interest_calculated_on,
-        end_date=today,
-    )
-
-    # Remaining principal + accrued interest
-    # represents the amount currently payable.
-    total_payable = (
-        loan.remaining_principal +
-        accrued_interest
+    outstanding = calculate_current_outstanding(
+        loan=loan,
+        calculation_date=today,
     )
 
     # Return a lightweight summary.
@@ -308,8 +324,8 @@ def get_interest_summary(
         "remaining_principal": loan.remaining_principal,
         "interest_method": interest_method,
         "interest_rate": loan.interest_rate,
-        "accrued_interest": accrued_interest,
-        "total_payable": total_payable,
+        "accrued_interest": outstanding["accrued_interest"],
+        "total_payable": outstanding["total_outstanding"],
         "calculated_to": today,
     }
 
@@ -356,12 +372,9 @@ def get_loan_statement(
         .all()
     )
 
-    accrued_interest = calculate_interest(
-        principal=loan.remaining_principal,
-        rate=loan.interest_rate,
-        method=loan.interest_method,
-        start_date=loan.last_interest_calculated_on,
-        end_date=date.today(),
+    outstanding = calculate_current_outstanding(
+        loan=loan,
+        calculation_date=date.today(),
     )
 
     payment_history = []
@@ -382,7 +395,133 @@ def get_loan_statement(
         loan=loan,
         customer_name=customer.full_name,
         customer_phone=customer.phone,
-        accrued_interest=accrued_interest,
-        total_outstanding=loan.remaining_principal + accrued_interest,
+        accrued_interest=outstanding["accrued_interest"],
+        total_outstanding=outstanding["total_outstanding"],
         payments=payment_history,
     )
+
+def get_settlement_preview(
+    db: Session,
+    loan_id: int,
+    finance_owner_id: int,
+    settlement_date: date,
+):
+    loan = get_loan_by_id(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=finance_owner_id,
+    )
+
+    customer = (
+        db.query(Customer)
+        .filter(
+            Customer.id == loan.customer_id,
+            Customer.finance_owner_id == finance_owner_id,
+        )
+        .first()
+    )
+
+    outstanding = calculate_current_outstanding(
+        loan=loan,
+        calculation_date=settlement_date,
+    )
+
+    return {
+        "loan_id": loan.id,
+        "customer_name": customer.full_name,
+        "principal_outstanding": loan.remaining_principal,
+        "interest_outstanding": outstanding["accrued_interest"],
+        "total_outstanding": outstanding["total_outstanding"],
+    }
+
+def settle_loan(
+    db: Session,
+    loan_id: int,
+    finance_owner_id: int,
+    settlement,
+):
+    """
+    Settle a loan by accepting a negotiated amount and
+    waiving the remaining balance.
+    """
+
+    loan = get_loan_by_id(
+        db=db,
+        loan_id=loan_id,
+        finance_owner_id=finance_owner_id,
+    )
+
+    if loan.status == "CLOSED":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Loan is already closed.",
+        )
+
+    outstanding = calculate_current_outstanding(
+        loan=loan,
+        calculation_date=settlement.settlement_date,
+    )
+
+    interest_due = outstanding["accrued_interest"]
+    total_due = outstanding["total_outstanding"]
+
+    settlement_amount = Decimal(settlement.settlement_amount)
+
+    if settlement_amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Settlement amount must be greater than zero.",
+        )
+
+    if settlement_amount > total_due:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Settlement amount cannot exceed total outstanding.",
+        )
+
+    interest_paid = min(settlement_amount, interest_due)
+
+    principal_paid = settlement_amount - interest_paid
+
+    if principal_paid <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Settlement amount must include some principal payment.",
+        )
+
+    if principal_paid > loan.remaining_principal:
+        principal_paid = loan.remaining_principal
+
+    waived_amount = total_due - settlement_amount
+
+    payment = Payment(
+        finance_owner_id=finance_owner_id,
+        loan_id=loan.id,
+        payment_date=settlement.settlement_date,
+        amount_paid=settlement_amount,
+        principal_paid=principal_paid,
+        interest_paid=interest_paid,
+        payment_mode=settlement.payment_mode,
+        remarks=settlement.settlement_reason,
+    )
+
+    db.add(payment)
+
+    loan.total_interest_paid += interest_paid
+    loan.total_principal_paid += principal_paid
+    loan.remaining_principal = Decimal("0.00")
+    loan.last_interest_calculated_on = settlement.settlement_date
+
+    loan.status = "CLOSED"
+    loan.closed_at = datetime.utcnow()
+
+    loan.settlement_amount = settlement_amount
+    loan.waived_amount = waived_amount
+    loan.settlement_date = settlement.settlement_date
+    loan.settlement_reason = settlement.settlement_reason
+    loan.closure_type = "SETTLEMENT"
+
+    db.commit()
+    db.refresh(loan)
+
+    return loan

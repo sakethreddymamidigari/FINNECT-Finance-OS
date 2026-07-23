@@ -3,13 +3,14 @@ from decimal import Decimal
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
+from backend.app.models.enums import PaymentMode
 
 
 class PaymentCreate(BaseModel):
     loan_id: int
     payment_date: date
     amount_paid: Decimal
-    payment_mode: str
+    payment_mode: PaymentMode
     remarks: Optional[str] = None
 
 
@@ -21,7 +22,7 @@ class PaymentResponse(BaseModel):
     amount_paid: Decimal
     interest_paid: Decimal
     principal_paid: Decimal
-    payment_mode: str
+    payment_mode: PaymentMode
     remarks: Optional[str] = None
     created_at: datetime
 
